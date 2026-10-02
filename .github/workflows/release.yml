@@ -11,6 +11,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     strategy:
@@ -73,6 +77,11 @@ jobs:
         run: |
           if [[ "$GITHUB_REF" == refs/tags/* ]]; then echo "tag=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT";
           else echo "tag=v$(tr -d '[:space:]' < VERSION)" >> "$GITHUB_OUTPUT"; fi
+
+      - name: Sürüm etiketini bu commit'e taşı
+        run: |
+          git tag -f "${{ steps.v.outputs.tag }}"
+          git push -f origin "refs/tags/${{ steps.v.outputs.tag }}"
 
       - uses: actions/download-artifact@v4
         with:
