@@ -1,0 +1,10 @@
+pywebview==6.2.1
+certifi>=2023.0
+pyinstaller>=6.10
+# macOS'un yerleşik Python 3.9'u için: pyobjc 12 artık 3.9'a hazır paket sunmuyor, 11.1 sunuyor
+pyobjc-core==11.1; sys_platform == "darwin" and python_version < "3.10"
+pyobjc-framework-Cocoa==11.1; sys_platform == "darwin" and python_version < "3.10"
+pyobjc-framework-Quartz==11.1; sys_platform == "darwin" and python_version < "3.10"
+pyobjc-framework-WebKit==11.1; sys_platform == "darwin" and python_version < "3.10"
+pyobjc-framework-Security==11.1; sys_platform == "darwin" and python_version < "3.10"
+pyobjc-framework-UniformTypeIdentifiers==11.1; sys_platform == "darwin" and python_version < "3.10"

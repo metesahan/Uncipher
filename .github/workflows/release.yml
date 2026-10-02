@@ -1,0 +1,97 @@
+name: Uygulamayı derle
+
+# main dalına her gönderimde macOS ve Windows sürümleri derlenir ve
+# VERSION dosyasındaki numarayla Releases sayfasında yayınlanır (örn. v1.0.0).
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            asset: Uncipher-macOS.zip
+          - os: windows-latest
+            asset: Uncipher-Windows.exe
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Paketleri kur
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+
+      - name: Kripto testleri
+        run: node tests/test_crypto.js
+
+      - name: macOS uygulamasını derle
+        if: runner.os == 'macOS'
+        run: |
+          mkdir -p Uncipher.iconset
+          for s in 16 32 128 256 512; do
+            sips -z $s $s assets/icon.png --out Uncipher.iconset/icon_${s}x${s}.png
+            sips -z $((s*2)) $((s*2)) assets/icon.png --out Uncipher.iconset/icon_${s}x${s}@2x.png
+          done
+          iconutil -c icns Uncipher.iconset -o Uncipher.icns
+          pyinstaller --noconfirm --windowed --name Uncipher --icon Uncipher.icns \
+            --osx-bundle-identifier com.metesahan.uncipher --add-data "ui:ui" main.py
+          ditto -c -k --keepParent dist/Uncipher.app ${{ matrix.asset }}
+
+      - name: Windows uygulamasını derle
+        if: runner.os == 'Windows'
+        run: |
+          pyinstaller --noconfirm --onefile --windowed --name Uncipher --icon assets/Uncipher.ico --add-data "ui;ui" main.py
+          Copy-Item dist/Uncipher.exe ${{ matrix.asset }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.asset }}
+          path: ${{ matrix.asset }}
+
+  release:
+    needs: build
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Sürüm numarası
+        id: v
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/* ]]; then echo "tag=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT";
+          else echo "tag=v$(tr -d '[:space:]' < VERSION)" >> "$GITHUB_OUTPUT"; fi
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: out
+          merge-multiple: true
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.v.outputs.tag }}
+          name: Uncipher ${{ steps.v.outputs.tag }}
+          target_commitish: ${{ github.sha }}
+          make_latest: true
+          body: |
+            **İndir:**
+            - macOS (Apple Silicon): `Uncipher-macOS.zip` → aç → `Uncipher.app`'i Uygulamalar'a sürükle → çift tıkla
+            - Windows: `Uncipher-Windows.exe` → çift tıkla
+
+            İlk açılışta uyarı çıkarsa: macOS'ta Sistem Ayarları → Gizlilik ve Güvenlik → **Yine de Aç**; Windows'ta **Ek bilgi → Yine de çalıştır**.
+            Intel Mac için README'deki tek tık kurulumu kullanın.
+          files: |
+            out/Uncipher-macOS.zip
+            out/Uncipher-Windows.exe

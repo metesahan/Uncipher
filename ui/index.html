@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Uncipher</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <canvas id="bg"></canvas>
+
+  <div class="app">
+    <aside class="sidebar glass">
+      <div class="brand">
+        <svg viewBox="0 0 32 32" class="logo" aria-hidden="true">
+          <rect x="7" y="14" width="18" height="13" rx="3"/>
+          <path d="M11 14v-3a5 5 0 0 1 9.6-2" fill="none"/>
+          <circle cx="16" cy="20.5" r="1.8"/>
+        </svg>
+        <span>Uncipher</span>
+      </div>
+
+      <nav class="nav">
+        <button class="nav-item active" data-view="cipher"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m18 14 4 4-4 4"/><path d="m18 2 4 4-4 4"/><path d="M2 18h1.973a4 4 0 0 0 3.3-1.7l5.454-7.6a4 4 0 0 1 3.3-1.7H22"/><path d="M2 6h1.972a4 4 0 0 1 3.6 2.2"/><path d="M22 18h-6.041a4 4 0 0 1-3.3-1.8l-.359-.45"/></svg></span>Şifrele &amp; Çöz</button>
+        <button class="nav-item" data-view="breaker"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z"/><circle cx="16.5" cy="7.5" r=".5" fill="currentColor"/></svg></span>Otomatik Kırma</button>
+        <button class="nav-item" data-view="audio"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 13a2 2 0 0 0 2-2V7a2 2 0 0 1 4 0v13a2 2 0 0 0 4 0V4a2 2 0 0 1 4 0v13a2 2 0 0 0 4 0v-4a2 2 0 0 1 2-2"/></svg></span>Ses &amp; Görsel İnceleme</button>
+        <button class="nav-item" data-view="glossary"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/></svg></span>Kriptoloji Sözlüğü</button>
+      </nav>
+
+      <div class="side-block">
+        <div class="label">Alfabe</div>
+        <div class="seg" id="langSeg">
+          <button data-lang="tr" class="active">Türkçe · 29</button>
+          <button data-lang="en">English · 26</button>
+        </div>
+        <div class="alpha-preview mono" id="alphaPreview"></div>
+      </div>
+
+      <div class="side-block">
+        <div class="label">Kelime listeleri</div>
+        <div class="wl" id="wl-tr"><span class="dot"></span><span class="wl-name">Türkçe</span><span class="wl-info">bekleniyor</span></div>
+        <div class="wl" id="wl-en"><span class="dot"></span><span class="wl-name">İngilizce</span><span class="wl-info">bekleniyor</span></div>
+      </div>
+    </aside>
+
+    <main class="content">
+      <!-- MODÜL 1 -->
+      <section class="view active" id="view-cipher">
+        <header class="view-head">
+          <h1>Şifrele &amp; Çöz</h1>
+          <p>Metodları sırayla ekleyerek bir şifreleme zinciri oluşturun. Çözme işlemi zinciri tersine çalıştırır.</p>
+        </header>
+
+        <div class="grid-2">
+          <div class="glass card">
+            <div class="card-title">Giriş</div>
+            <textarea id="cInput" spellcheck="false" placeholder="Metni buraya yazın…"></textarea>
+            <div class="row">
+              <button class="btn primary" id="btnEncrypt">Şifrele</button>
+              <button class="btn" id="btnDecrypt">Çöz</button>
+              <span class="grow"></span>
+              <button class="btn ghost" id="btnClearIn">Temizle</button>
+            </div>
+          </div>
+
+          <div class="glass card">
+            <div class="card-title">Şifreleme Zinciri</div>
+            <div class="row">
+              <select id="methodSelect"></select>
+              <button class="btn" id="btnAddStep">Zincire Ekle</button>
+            </div>
+            <div class="chain-flow mono" id="chainFlow"></div>
+            <ol class="chain" id="chainList"></ol>
+          </div>
+        </div>
+
+        <div class="glass card">
+          <div class="card-title">Çıkış <span class="muted" id="cOutMeta"></span></div>
+          <textarea id="cOutput" spellcheck="false" readonly placeholder="Sonuç burada görünecek."></textarea>
+          <div class="row">
+            <button class="btn" id="btnSwap">Çıkışı girişe taşı</button>
+            <button class="btn" id="btnCopy">Kopyala</button>
+            <span class="grow"></span>
+            <span class="error" id="cError"></span>
+          </div>
+          <div class="pigpen-view" id="pigpenView" hidden></div>
+          <details class="trace" id="traceBox" hidden>
+            <summary>Ara adımlar</summary>
+            <ol id="traceList"></ol>
+          </details>
+        </div>
+      </section>
+
+      <!-- MODÜL 2 -->
+      <section class="view" id="view-breaker">
+        <header class="view-head">
+          <h1>Otomatik Kırma</h1>
+          <p>Metodlar, kaydırma/anahtar kombinasyonları ve permütasyonlar denenir; sonuçlar seçili dilin kelime listesiyle eşleşme oranına göre sıralanır.</p>
+        </header>
+
+        <div class="grid-2">
+          <div class="glass card">
+            <div class="card-title">Şifreli metin</div>
+            <textarea id="bInput" spellcheck="false" placeholder="Bilinmeyen şifreli metni yapıştırın…"></textarea>
+            <div class="row">
+              <button class="btn primary" id="btnBreak">Kırmayı Başlat</button>
+              <button class="btn ghost" id="btnBreakStop" hidden>Durdur</button>
+              <span class="grow"></span>
+              <span class="muted" id="bMeta"></span>
+            </div>
+            <div class="progress"><div id="bProgress"></div></div>
+          </div>
+
+          <div class="glass card">
+            <div class="card-title">Denenecek metodlar</div>
+            <div class="checks" id="bOpts">
+              <label><input type="checkbox" data-opt="caesar" checked> Sezar (tüm kaydırmalar)</label>
+              <label><input type="checkbox" data-opt="atbash" checked> Atbash</label>
+              <label><input type="checkbox" data-opt="affine" checked> Affine (tüm a, b)</label>
+              <label><input type="checkbox" data-opt="vigenere" checked> Vigenère (frekans analizi + anahtar listesi)</label>
+              <label><input type="checkbox" data-opt="gronsfeld" checked> Gronsfeld (frekans analizi)</label>
+              <label><input type="checkbox" data-opt="route" checked> Route / Spiral (2–20 sütun)</label>
+              <label><input type="checkbox" data-opt="routeCombo" checked> Route + yerine koyma permütasyonları</label>
+              <label><input type="checkbox" data-opt="polybius" checked> Polybius çözümü</label>
+              <label><input type="checkbox" data-opt="bacon" checked> Bacon çözümü</label>
+              <label><input type="checkbox" data-opt="pigpen" checked> Pigpen çözümü</label>
+            </div>
+            <div class="row">
+              <label class="inline">Vigenère anahtar adayları
+                <input type="text" id="bKeys" placeholder="virgülle ayırın: gizli, anahtar, kale">
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="glass card">
+          <div class="card-title">Sonuçlar <span class="muted">en çok anlamlı kelime içerenler üstte</span></div>
+          <div class="table-wrap">
+            <table class="results">
+              <thead><tr><th>#</th><th>Skor</th><th>Kelime</th><th>Zincir (şifreleme sırası)</th><th>Metin</th><th></th></tr></thead>
+              <tbody id="bResults"><tr><td colspan="6" class="muted center">Henüz sonuç yok.</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- MODÜL 3 -->
+      <section class="view" id="view-audio">
+        <header class="view-head">
+          <h1>Ses &amp; Görsel İnceleme</h1>
+          <p>Spektrogram, görselden sese dönüştürme ve metinden Mors / frekans sesi üretimi.</p>
+        </header>
+
+        <div class="glass card">
+          <div class="card-title">Spektrogram</div>
+          <div class="row wrap">
+            <label class="file-btn btn">Ses dosyası seç<input type="file" id="aFile" accept="audio/*,.wav,.mp3,.ogg,.flac,.m4a,.aac"></label>
+            <label class="inline">FFT
+              <select id="aFft"><option>512</option><option>1024</option><option selected>2048</option><option>4096</option><option>8192</option></select>
+            </label>
+            <label class="inline">Üst frekans
+              <select id="aMax"><option value="0">Nyquist</option><option value="4000">4 kHz</option><option value="8000">8 kHz</option><option value="12000">12 kHz</option><option value="16000">16 kHz</option></select>
+            </label>
+            <label class="inline"><input type="checkbox" id="aLog"> Logaritmik</label>
+            <span class="grow"></span>
+            <button class="btn" id="aPlay" disabled>Oynat</button>
+            <button class="btn ghost" id="aStop">Durdur</button>
+          </div>
+          <div class="spec-wrap">
+            <canvas id="specCanvas"></canvas>
+            <div class="playhead" id="specHead"></div>
+            <div class="spec-empty muted" id="specEmpty">Bir ses dosyası yükleyin (wav, mp3, ogg, flac…)</div>
+          </div>
+          <div class="muted mono small" id="aInfo"></div>
+        </div>
+
+        <div class="grid-2">
+          <div class="glass card">
+            <div class="card-title">Görselden Sese</div>
+            <div class="row wrap">
+              <label class="file-btn btn">Görsel seç<input type="file" id="iFile" accept="image/*"></label>
+              <label class="inline">Süre <input type="number" id="iDur" value="5" min="1" max="30" step="1"> s</label>
+              <label class="inline">Frekans <input type="number" id="iFmin" value="200" min="20" max="20000"> – <input type="number" id="iFmax" value="8000" min="100" max="20000"> Hz</label>
+              <label class="inline"><input type="checkbox" id="iInv"> Ters çevir</label>
+            </div>
+            <div class="img-wrap">
+              <img id="iPreview" alt="" hidden>
+              <div class="playhead" id="imgHead"></div>
+              <div class="spec-empty muted" id="imgEmpty">Görsel yükleyin; her satır bir osilatör, her sütun bir zaman dilimidir.</div>
+            </div>
+            <div class="row">
+              <button class="btn primary" id="iPlay" disabled>Sese Dönüştür &amp; Oynat</button>
+              <button class="btn ghost" id="iStop">Durdur</button>
+              <button class="btn" id="iSave" disabled>WAV kaydet</button>
+              <button class="btn" id="iToSpec" disabled>Spektrogramda göster</button>
+            </div>
+            <div class="muted small" id="iInfo"></div>
+          </div>
+
+          <div class="glass card">
+            <div class="card-title">Metinden Sese / Mors</div>
+            <textarea id="mText" class="short" spellcheck="false" placeholder="Metin yazın…">SOS</textarea>
+            <div class="row wrap">
+              <div class="seg small" id="mMode">
+                <button data-mode="morse" class="active">Mors</button>
+                <button data-mode="tones">Frekans</button>
+              </div>
+              <label class="inline" id="mWpmWrap">Hız <input type="number" id="mWpm" value="18" min="5" max="40"> WPM</label>
+              <label class="inline" id="mFreqWrap">Ton <input type="number" id="mFreq" value="650" min="100" max="3000"> Hz</label>
+              <label class="inline" id="mBaseWrap" hidden>Taban <input type="number" id="mBase" value="300" min="50" max="3000"> Hz, adım <input type="number" id="mStep" value="40" min="5" max="500"> Hz</label>
+            </div>
+            <div class="morse-out mono" id="mOut"></div>
+            <div class="row">
+              <button class="btn primary" id="mPlay">Oynat</button>
+              <button class="btn ghost" id="mStop">Durdur</button>
+              <button class="btn" id="mSave">WAV kaydet</button>
+              <span class="grow"></span>
+              <button class="btn ghost" id="mDecode" title="Kutudaki Mors kodunu metne çevirir">Mors → Metin</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- MODÜL 4 -->
+      <section class="view" id="view-glossary">
+        <header class="view-head">
+          <h1>Kriptoloji Sözlüğü</h1>
+          <p>Soldan bir yöntem seçin. Her kartta tanım, adım adım görsel anlatım ve kendi metninizle deneyebileceğiniz canlı bir örnek bulunur.</p>
+        </header>
+        <div class="gloss-layout">
+          <nav class="gloss-index glass" id="glossIndex"></nav>
+          <div class="gloss-grid" id="glossGrid">
+          <article class="glass gloss" data-method="caesar">
+            <h3><span class="num">1</span>Sezar (Caesar) Şifrelemesi</h3>
+            <div class="gloss-tag">Yerine koyma</div>
+            <p><b>Açıklama:</b> Tarihin bilinen en eski şifreleme tekniklerinden biridir. Metindeki her harfin, alfabede belirlenen sabit bir sayı (anahtar) kadar ileri veya geri kaydırılması esasına dayanır.</p>
+            <p><b>Çalışma Mantığı:</b> Seçilen alfabe diziliminde her harfin indeksi i kabul edilirse; k kaydırma miktarı olmak üzere şifreli harf (i + k) mod N formülü ile bulunur (N alfabadaki harf sayısıdır).</p>
+            <div class="viz-head">Görsel Anlatım</div>
+            <div class="viz"></div>
+          </article>
+          <article class="glass gloss" data-method="vigenere">
+            <h3><span class="num">2</span>Vigenère Şifrelemesi</h3>
+            <div class="gloss-tag">Yerine koyma · polialfabetik</div>
+            <p><b>Açıklama:</b> Tek bir sabit kaydırma yerine, belirlenen bir anahtar kelimenin harflerine göre değişken kaydırma uygulayan polialfabetik bir yöntemdir.</p>
+            <p><b>Çalışma Mantığı:</b> Anahtar kelime, açık metnin uzunluğuna ulaşana kadar tekrarlanır. Metnin her harfi, hizasındaki anahtar harfin alfabedeki indeksi kadar Sezar kaydırmasına tabi tutulur.</p>
+            <div class="viz-head">Görsel Anlatım</div>
+            <div class="viz"></div>
+          </article>
+          <article class="glass gloss" data-method="atbash">
+            <h3><span class="num">3</span>Atbash Şifresi</h3>
+            <div class="gloss-tag">Yerine koyma</div>
+            <p><b>Açıklama:</b> İbrani alfabesi menşeli, simetrik bir yerine koyma şifresidir.</p>
+            <p><b>Çalışma Mantığı:</b> Alfabedeki ilk harf son harfle, ikinci harf sondan ikinciyle değiştirilir (Örn: Türkçe alfabede A&lt;-&gt;Z, B&lt;-&gt;Y, C&lt;-&gt;V).</p>
+            <div class="viz-head">Görsel Anlatım</div>
+            <div class="viz"></div>
+          </article>
+          <article class="glass gloss" data-method="route">
+            <h3><span class="num">4</span>Route (Spiral / Rota) Şifresi</h3>
+            <div class="gloss-tag">Yer değiştirme</div>
+            <p><b>Açıklama:</b> Metnin harflerini bir matrise yazıp belirli bir geometrik rota izleyerek okumaya dayanan yer değiştirme (transposition) şifresidir.</p>
+            <p><b>Çalışma Mantığı:</b> Metin belirlenen sütun sayısına göre satır satır bir tabloya dizilir. Ardından matrisin sağ üst köşesinden başlanarak saat yönünde spiral bir rota izlenerek harfler sırayla okunur ve şifreli metin elde edilir.</p>
+            <div class="viz-head">Görsel Anlatım</div>
+            <div class="viz"></div>
+          </article>
+          <article class="glass gloss" data-method="polybius">
+            <h3><span class="num">5</span>Polybius Karesi</h3>
+            <div class="gloss-tag">Kodlama · koordinat</div>
+            <p><b>Açıklama:</b> Harfleri iki boyutlu bir koordinat sistemine oturtan antik Yunan şifreleme yöntemidir.</p>
+            <p><b>Çalışma Mantığı:</b> Alfabe 5x5'lik (veya dile göre 6x5'lik) bir tabloya yerleştirilir. Her harf, bulunduğu satır ve sütun numarasından oluşan iki basamaklı bir sayı ile temsil edilir.</p>
+            <div class="viz-head">Görsel Anlatım</div>
+            <div class="viz"></div>
+          </article>
+          <article class="glass gloss" data-method="bacon">
+            <h3><span class="num">6</span>Bacon Şifresi</h3>
+            <div class="gloss-tag">Kodlama · ikili</div>
+            <p><b>Açıklama:</b> Sir Francis Bacon tarafından geliştirilen, metni ikili (binary) mantıkla gizleyen steganografik bir yöntemdir.</p>
+            <p><b>Çalışma Mantığı:</b> Alfabedeki her harf 'A' ve 'B' karakterlerinden oluşan 5'li gruplara dönüştürülür (Örn: A = AAAAA, B = AAAAB).</p>
+            <div class="viz-head">Görsel Anlatım</div>
+            <div class="viz"></div>
+          </article>
+          <article class="glass gloss" data-method="pigpen">
+            <h3><span class="num">7</span>Pigpen (Mason) Şifresi</h3>
+            <div class="gloss-tag">Kodlama · sembol</div>
+            <p><b>Açıklama:</b> Harflerin alfabetik karakterler yerine geometrik şekiller ve noktalarla ifade edildiği görsel bir şifredir.</p>
+            <p><b>Çalışma Mantığı:</b> Harfler kare ızgaralara ve çapraz çizgilere yerleştirilir. Şifreleme esnasında harfin içinde bulunduğu ızgara çerçevesi ve nokta konumu sembol olarak çizilir.</p>
+            <div class="viz-head">Görsel Anlatım</div>
+            <div class="viz"></div>
+          </article>
+          <article class="glass gloss" data-method="gronsfeld">
+            <h3><span class="num">8</span>Gronsfeld Şifresi</h3>
+            <div class="gloss-tag">Yerine koyma · polialfabetik</div>
+            <p><b>Açıklama:</b> Vigenère şifresinin harf anahtarı yerine doğrudan rakamlardan oluşan bir anahtar dizisi kullanan varyasyonudur.</p>
+            <p><b>Çalışma Mantığı:</b> Belirlenen sayısal anahtar (Örn: 31415) metin boyunca tekrarlanır ve her harf hizasındaki rakam kadar alfabede ileri kaydırılır.</p>
+            <div class="viz-head">Görsel Anlatım</div>
+            <div class="viz"></div>
+          </article>
+          <article class="glass gloss" data-method="affine">
+            <h3><span class="num">9</span>Affine (Afin) Şifresi</h3>
+            <div class="gloss-tag">Yerine koyma · matematiksel</div>
+            <p><b>Açıklama:</b> Matematiksel bir fonksiyon kullanarak harflerin indekslerini dönüştüren birleşik şifreleme yöntemidir.</p>
+            <p><b>Çalışma Mantığı:</b> x açık harfin indeksi olmak üzere şifreleme fonksiyonu E(x) = (a * x + b) mod N şeklindedir. Burada a ve N (alfabe boyutu) sayıları aralarında asal olmalıdır.</p>
+            <div class="viz-head">Görsel Anlatım</div>
+            <div class="viz"></div>
+          </article>
+        </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <footer class="footer">© Mete Şahan Tarafından Geliştirilmiştir Tüm Hakları Saklıdır.</footer>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="crypto.js"></script>
+  <script src="breaker.js"></script>
+  <script src="audio.js"></script>
+  <script src="background.js"></script>
+  <script src="app.js"></script>
+  <script src="glossary.js"></script>
+</body>
+</html>
